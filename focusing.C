@@ -8,10 +8,10 @@
 
 	// User defined variables
 #define CHANNEL CH4 // Select which channel the pad is linked to
-#define FILEPATH "Run6_HPK80D_KU_RED.rtct" // Path to PSTCT waveform file
+#define FILEPATH "Run6_HPK80D_KU.rtct" // Path to PSTCT waveform file
 #define SCANAXIS X // Scanning axis for waveforms
-#define t0 60 // Approx start time of pulse
-#define t1 80 // Approx end time of pulse
+#define tStart 60 // Approx start time of pulse
+#define tEnd 80 // Approx end time of pulse
 
     // Aux macros
 #define time(X) (1024*(X)/200) // DRS4 time->bin conversion
@@ -24,8 +24,8 @@
 	meas.PrintInfo();
 
 	enum{
-	X = 0;
-	Y = 1;
+	X = 0,
+	Y = 1
 	}axis;
 
 	enum{
@@ -70,7 +70,7 @@
 			for (j = 0; j < meas.Nx; j++) {
 				TH1F * t1;
 				t1 = meas.GetHA(CHANNEL, j, 0, i, 0, 0);
-				t1->GetXaxis()->SetRange(time(t0), time(t1));
+				t1->GetXaxis()->SetRange(time(tStart), time(tEnd));
 				if (!foundStart) {
 					foundStart = startSignal <= -1 * t1->GetMinimum();
 					axis0 = j;
@@ -86,7 +86,7 @@
 			for (j = 0; j < meas.Ny; j++) {
 				TH1F * t1;
 				t1 = meas.GetHA(CHANNEL, 0, j, i, 0, 0);
-				t1->GetXaxis()->SetRange(time(t0), time(t1);
+				t1->GetXaxis()->SetRange(time(tStart), time(tEnd));
 				if (!foundStart) {
 					foundStart = startSignal <= -1 * t1->GetMinimum();
 					axis0 = j;
@@ -102,7 +102,7 @@
 			for (j = 0; j < meas.Nx; j++) {
 				TH1F * t1;
 				t1 = meas.GetHA(CHANNEL, j, 0, i, 0, 0);
-				t1->GetXaxis()->SetRange(time(t0), time(t1));
+				t1->GetXaxis()->SetRange(time(tStart), time(tEnd));
 				if (!foundStart) {
 					foundStart = startSignal <= -1 * t1->GetMinimum();
 					axis0 = j;
