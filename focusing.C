@@ -1,10 +1,20 @@
 {
+  /****************************************************************************
+  * File: focusing.C
+  * Version: 1.0
+  * Author: Ric Rodriguez
+  * Function: Calculates the focal point optical coordinate and beam spot size
+  * 
+  *
+  ****************************************************************************/
 
-#define CHANNEL CH4
-#define DEBUG 1
+  #define CHANNEL CH4
+  #define DEBUG 1
+  #define FILEPATH "Run6_HPK80D_KU_RED.rtct"
+
   gROOT->ProcessLine("gErrorIgnoreLevel=2001");
-  char* file = (char *)  "Run6_HPK80D_KU_RED.rtct";
-	PSTCT meas(file,0,2);
+  char* file = (char *)  FILEPATH;
+  PSTCT meas(file,0,2);
   meas.PrintInfo();
   enum{
     CH1=0,
