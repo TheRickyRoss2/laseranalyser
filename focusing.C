@@ -3,6 +3,7 @@
    * File: focusing.C
    * Version: 1.0
    * Author: Ric Rodriguez
+   * Algorithm Credit: Federico Siviero
    * Function: Calculates the focal point optical coordinate and beam spot size
    * Example usage
    * ~bash$: root
