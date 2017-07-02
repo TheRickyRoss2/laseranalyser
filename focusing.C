@@ -22,7 +22,7 @@
   # define time(X)(1024 * (X) / 200) // DRS4 time->bin conversion
 
   // Load in waveform file
-  gROOT - > ProcessLine("gErrorIgnoreLevel=2001");
+  gROOT->ProcessLine("gErrorIgnoreLevel=2001");
   char * file = (char * ) FILEPATH;
   PSTCT meas(file, 0, 2);
   meas.PrintInfo();
@@ -55,12 +55,12 @@
 
   switch (SCANAXIS) {
   case X:
-    startSignal = -1 * 0.1 * meas.GetHA(CHANNEL, meas.Nx * 3 / 4, 0, meas.Nz / 2, 0, 0) - > GetMinimum();
-    fullSignal = -1 * 0.9 * meas.GetHA(CHANNEL, meas.Nx * 3 / 4, 0, meas.Nz / 2, 0, 0) - > GetMinimum();
+    startSignal = -1 * 0.1 * meas.GetHA(CHANNEL, meas.Nx * 3 / 4, 0, meas.Nz / 2, 0, 0)->GetMinimum();
+    fullSignal = -1 * 0.9 * meas.GetHA(CHANNEL, meas.Nx * 3 / 4, 0, meas.Nz / 2, 0, 0)->GetMinimum();
     break;
   case Y:
-    startSignal = -1 * 0.1 * meas.GetHA(CHANNEL, 0, meas.Ny * 3 / 4, meas.Nz / 2, 0, 0) - > GetMinimum();
-    fullSignal = -1 * 0.9 * meas.GetHA(CHANNEL, 0, meas.Ny * 3 / 4, meas.Nz / 2, 0, 0) - > GetMinimum();
+    startSignal = -1 * 0.1 * meas.GetHA(CHANNEL, 0, meas.Ny * 3 / 4, meas.Nz / 2, 0, 0)->GetMinimum();
+    fullSignal = -1 * 0.9 * meas.GetHA(CHANNEL, 0, meas.Ny * 3 / 4, meas.Nz / 2, 0, 0)->GetMinimum();
     break;
   default:
     startSignal = 15;
@@ -76,13 +76,13 @@
       for (j = 0; j < meas.Nx; j++) {
         TH1F * t1;
         t1 = meas.GetHA(CHANNEL, j, 0, i, 0, 0);
-        t1 - > GetXaxis() - > SetRange(time(tStart), time(tEnd));
+        t1->GetXaxis()->SetRange(time(tStart), time(tEnd));
         if (!foundStart) {
-          foundStart = startSignal <= -1 * t1 - > GetMinimum();
+          foundStart = startSignal <= -1 * t1->GetMinimum();
           axis0 = j;
         }
         if (!foundEnd) {
-          foundEnd = fullSignal <= -1 * t1 - > GetMinimum();
+          foundEnd = fullSignal <= -1 * t1->GetMinimum();
           dAxis[i] = j - axis0;
         }
       }
@@ -92,13 +92,13 @@
       for (j = 0; j < meas.Ny; j++) {
         TH1F * t1;
         t1 = meas.GetHA(CHANNEL, 0, j, i, 0, 0);
-        t1 - > GetXaxis() - > SetRange(time(tStart), time(tEnd));
+        t1->GetXaxis()->SetRange(time(tStart), time(tEnd));
         if (!foundStart) {
-          foundStart = startSignal <= -1 * t1 - > GetMinimum();
+          foundStart = startSignal <= -1 * t1->GetMinimum();
           axis0 = j;
         }
         if (!foundEnd) {
-          foundEnd = fullSignal <= -1 * t1 - > GetMinimum();
+          foundEnd = fullSignal <= -1 * t1->GetMinimum();
           dAxis[i] = j - axis0;
         }
       }
@@ -108,13 +108,13 @@
       for (j = 0; j < meas.Nx; j++) {
         TH1F * t1;
         t1 = meas.GetHA(CHANNEL, j, 0, i, 0, 0);
-        t1 - > GetXaxis() - > SetRange(time(tStart), time(tEnd));
+        t1->GetXaxis()->SetRange(time(tStart), time(tEnd));
         if (!foundStart) {
-          foundStart = startSignal <= -1 * t1 - > GetMinimum();
+          foundStart = startSignal <= -1 * t1->GetMinimum();
           axis0 = j;
         }
         if (!foundEnd) {
-          foundEnd = fullSignal <= -1 * t1 - > GetMinimum();
+          foundEnd = fullSignal <= -1 * t1->GetMinimum();
           dAxis[i] = j - axis0;
         }
       }
