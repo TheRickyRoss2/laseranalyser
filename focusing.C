@@ -13,7 +13,7 @@
 
 
   #define CHANNEL CH2 // Select which channel the pad is linked to
-	#define FILEPATH "../../fredData.rtct"
+	#define FILEPATH "scan.rtct"
 	#define SCANAXIS Y
 
   gROOT->ProcessLine("gErrorIgnoreLevel=2001");
