@@ -13,13 +13,12 @@
 
 
   #define CHANNEL CH2 // Select which channel the pad is linked to
-	#define FILEPATH "../../fredData.rtct"
+	#define FILEPATH "../../scan.rtct"
 	#define SCANAXIS Y
 
   gROOT->ProcessLine("gErrorIgnoreLevel=2001");
   char * file = (char * ) FILEPATH;
   PSTCT *meas;
-  //(file,0, 2);
   meas = new PSTCT(file, 10,2);
   meas->PrintInfo();
   meas->RefC = -0.1276;
@@ -61,7 +60,6 @@
     fullSignal = 0.95 * meas->GetHA(CHANNEL, 0, meas->Ny * 3 / 4, meas->Nz / 2, 0, 0)->GetMaximum();
     t1 =  meas->GetHA(CHANNEL, 0, meas->Ny * 3 / 4, meas->Nz / 2, 0, 0);
     binSize =meas->NP/t1->GetXaxis()->GetXmax();
-    cout <<"ss"<<startSignal<<"fs"<<fullSignal<<endl;
     if(t1->GetMaximumBin()-binSize*5<0){
       start =0;
     }else{
@@ -72,7 +70,6 @@
     }else{
       end = t1->GetMaximumBin()+binSize*5;
     }
-    cout <<"s"<<start<<"e"<<end<<endl;
 
     break;
   case Y:
@@ -80,7 +77,6 @@
     fullSignal = 0.9 * meas->GetHA(CHANNEL, 0, meas->Ny * 3 / 4, meas->Nz / 2, 0, 0)->GetMaximum();
     t1 =  meas->GetHA(CHANNEL, 0, meas->Ny * 3 / 4, meas->Nz / 2, 0, 0);
     binSize =meas->NP/t1->GetXaxis()->GetXmax();
-    cout <<"ss"<<startSignal<<"fs"<<fullSignal<<endl;
     if(t1->GetMaximumBin()-binSize*5<0){
       start =0;
     }else{
@@ -91,7 +87,6 @@
     }else{
       end = t1->GetMaximumBin()+binSize*5;
     }
-    cout <<"s"<<start<<"e"<<end<<endl;
 
     break;
   default:
@@ -129,12 +124,10 @@
         t1->Draw();
         if (!foundStart) {
           foundStart = startSignal <= t1->GetMaximum();
-          if(foundStart)cout<<"Start pt"<<j<<endl;
           axis0 = j;
         }
         if (!foundEnd) {
           foundEnd = fullSignal <= t1->GetMaximum();
-          if(foundEnd)cout<<"End pt"<<j<<endl;
           dAxis[i] = j - axis0;
         }
 
@@ -162,7 +155,6 @@
   // Iterate through each Z-coordinates and find the shortest distance from 10% to 90% signal
   int min = 1000, indx = 0;
   for (i = 0; i < meas->Nz; i++) {
-    cout <<dAxis[i]<<endl;
     if (dAxis[i] < min) {
       min = dAxis[i];
       indx = i;
