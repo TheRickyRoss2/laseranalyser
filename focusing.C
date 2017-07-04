@@ -15,8 +15,6 @@
   #define CHANNEL CH2 // Select which channel the pad is linked to
 	#define FILEPATH "../../fredData.rtct"
 	#define SCANAXIS Y
-  #define tStart 13 // Approx start time of pulse
-  #define tEnd 19 // Approx end time of pulse
 
   gROOT->ProcessLine("gErrorIgnoreLevel=2001");
   char * file = (char * ) FILEPATH;
@@ -24,7 +22,6 @@
   //(file,0, 2);
   meas = new PSTCT(file, 0,2);
   meas->PrintInfo();
-
   enum {
     X = 0,
       Y = 1
@@ -43,6 +40,7 @@
   int i = 0, j = 0;
   int axis0 = 0, z0 = 0;
   int * dAxis;
+  int start=0, end=0, binSize=0;
   dAxis = new int[meas->Nz];
 
   bool foundStart = false, foundEnd = false;
@@ -53,14 +51,44 @@
   double startSignal = 0, fullSignal = 0;
 
   switch (SCANAXIS) {
+    TH1F *t1;
   case X:
-    startSignal = 0.1 * meas->GetHA(CHANNEL, meas->Nx * 3 / 4, 0, meas->Nz / 2, 0, 0)->GetMaximum();
-    fullSignal = 0.9 * meas->GetHA(CHANNEL, meas->Nx * 3 / 4, 0, meas->Nz / 2, 0, 0)->GetMaximum();
+    startSignal = 15;//0.09 * meas->GetHA(CHANNEL, 0, meas->Ny * 3 / 4, meas->Nz / 2, 0, 0)->GetMaximum();
+    fullSignal = 190;//0.95 * meas->GetHA(CHANNEL, 0, meas->Ny * 3 / 4, meas->Nz / 2, 0, 0)->GetMaximum();
+    t1 =  meas->GetHA(CHANNEL, 0, meas->Ny * 3 / 4, meas->Nz / 2, 0, 0);
+    binSize =meas->NP/t1->GetXaxis()->GetXmax();
+    cout <<"ss"<<startSignal<<"fs"<<fullSignal<<endl;
+    if(t1->GetMaximumBin()-binSize*5<0){
+      start =0;
+    }else{
+      start = t1->GetMaximumBin()-binSize*5;
+    }
+    if(t1->GetMaximumBin()+binSize*5>meas->NP){
+      end = meas->NP;
+    }else{
+      end = t1->GetMaximumBin()+binSize*5;
+    }
+    cout <<"s"<<start<<"e"<<end<<endl;
+
     break;
   case Y:
-    startSignal = 17;//0.1 * meas->GetHA(CHANNEL, 0, meas->Ny * 3 / 4, meas->Nz / 2, 0, 0)->GetMaximum();
-    fullSignal = 190;//0.9 * meas->GetHA(CHANNEL, 0, meas->Ny * 3 / 4, meas->Nz / 2, 0, 0)->GetMaximum();
+    startSignal = 17;//0.09 * meas->GetHA(CHANNEL, 0, meas->Ny * 3 / 4, meas->Nz / 2, 0, 0)->GetMaximum();
+    fullSignal = 190;//0.95 * meas->GetHA(CHANNEL, 0, meas->Ny * 3 / 4, meas->Nz / 2, 0, 0)->GetMaximum();
+    t1 =  meas->GetHA(CHANNEL, 0, meas->Ny * 3 / 4, meas->Nz / 2, 0, 0);
+    binSize =meas->NP/t1->GetXaxis()->GetXmax();
     cout <<"ss"<<startSignal<<"fs"<<fullSignal<<endl;
+    if(t1->GetMaximumBin()-binSize*5<0){
+      start =0;
+    }else{
+      start = t1->GetMaximumBin()-binSize*5;
+    }
+    if(t1->GetMaximumBin()+binSize*5>meas->NP){
+      end = meas->NP;
+    }else{
+      end = t1->GetMaximumBin()+binSize*5;
+    }
+    cout <<"s"<<start<<"e"<<end<<endl;
+
     break;
   default:
     startSignal = 15;
@@ -68,24 +96,21 @@
   }
 
   for (i = 0; i < meas->Nz; i++) {
-    cout<<"Z="<<i<<endl;
     foundStart = false;
     foundEnd = false;
 
     switch (SCANAXIS) {
     case X:
-      for (j = 0; j < meas->Nx; j++) {
+      for (j = 0; j < meas->Ny; j++) {
         TH1F * t1;
         t1 = meas->GetHA(CHANNEL, j, 0, i, 0, 0);
-        int time1 = tStart*meas->NP/t1->GetXaxis()->GetXmax();
-        int time2 = tEnd*meas->NP/t1->GetXaxis()->GetXmax();
-        t1->GetXaxis()->SetRange(time1, time2);
+        t1->GetXaxis()->SetRange(start, end);
         if (!foundStart) {
-          foundStart = startSignal >= t1->GetMaximum();
+          foundStart = startSignal <= t1->GetMaximum();
           axis0 = j;
         }
         if (!foundEnd) {
-          foundEnd = fullSignal >= t1->GetMaximum();
+          foundEnd = fullSignal <= t1->GetMaximum();
           dAxis[i] = j - axis0;
         }
       }
@@ -95,30 +120,23 @@
       for (j = 0; j < meas->Ny; j++) {
         TH1F * t1;
         t1 = meas->GetHA(CHANNEL, 0, j, i, 0, 0);
-        int time1 = tStart*meas->NP/t1->GetXaxis()->GetXmax();
-        int time2 = tEnd*meas->NP/t1->GetXaxis()->GetXmax();
-        t1->GetXaxis()->SetRange(time1, time2);
-        cout <<"Max of current graph:"<<t1->GetMaximum()<<endl;
+        t1->GetXaxis()->SetRange(start, end);
         if (!foundStart) {
           foundStart = startSignal <= t1->GetMaximum();
           axis0 = j;
-          if(foundStart)cout<<"Start "<<j<<endl;
         }
         if (!foundEnd) {
           foundEnd = fullSignal <= t1->GetMaximum();
           dAxis[i] = j - axis0;
-          if(foundStart)cout<<"End "<<dAxis[i]<<endl;
         }
       }
       break;
 
     default:
-      for (j = 0; j < meas->Nx; j++) {
+      for (j = 0; j < meas->Ny; j++) {
         TH1F * t1;
-        t1 = meas->GetHA(CHANNEL, j, 0, i, 0, 0);
-        int time1 = tEnd*meas->NP/t1->GetXaxis()->GetXmax();
-        int time2 = tEnd*meas->NP/t1->GetXaxis()->GetXmax();
-        t1->GetXaxis()->SetRange(time1, time2);
+        t1 = meas->GetHA(CHANNEL, 0, j, i, 0, 0);
+        t1->GetXaxis()->SetRange(start, end);
         if (!foundStart) {
           foundStart = startSignal <= t1->GetMaximum();
           axis0 = j;
@@ -130,13 +148,11 @@
       }
       break;
     }
-    cout <<endl;
   }
 
   // Iterate through each Z-coordinates and find the shortest distance from 10% to 90% signal
   int min = 1000, indx = 0;
   for (i = 0; i < meas->Nz; i++) {
-    cout << dAxis[i]<<endl;
     if (dAxis[i] < min) {
       min = dAxis[i];
       indx = i;
@@ -146,5 +162,4 @@
   // Print result
   cout << "Focal point at z=" <<indx*meas->dz+meas->z0 << " with spot size=" << min*meas->dy << endl;
   delete [] dAxis;
-  delete meas;
 }
