@@ -12,19 +12,18 @@
    ****************************************************************************/
 
   // User defined variables
-  #define CHANNEL CH4 // Select which channel the pad is linked to
-  #define FILEPATH "Run6_HPK80D_KU.rtct" // Path to PSTCT waveform file
-  #define SCANAXIS X // Scanning axis for waveforms
-  #define tStart 60 // Approx start time of pulse
-  #define tEnd 80 // Approx end time of pulse
-
+  #define CHANNEL CH2 // Select which channel the pad is linked to
+	#define FILEPATH "../../fredData.rtct"
+	#define SCANAXIS Y
+  #define tStart 13 // Approx start time of pulse
+  #define tEnd 19 // Approx end time of pulse
   // Aux macros
-  # define time(X)(1024 * (X) / 200) // DRS4 time->bin conversion
+  # define time(X)(402 * (X)/20) // DRS4 time->bin conversion
 
   // Load in waveform file
   gROOT->ProcessLine("gErrorIgnoreLevel=2001");
   char * file = (char * ) FILEPATH;
-  PSTCT meas(file, 0, 2);
+  PSTCT meas(file,0, 2);
   meas.PrintInfo();
 
   enum {
@@ -55,12 +54,13 @@
 
   switch (SCANAXIS) {
   case X:
-    startSignal = -1 * 0.1 * meas.GetHA(CHANNEL, meas.Nx * 3 / 4, 0, meas.Nz / 2, 0, 0)->GetMinimum();
-    fullSignal = -1 * 0.9 * meas.GetHA(CHANNEL, meas.Nx * 3 / 4, 0, meas.Nz / 2, 0, 0)->GetMinimum();
+    startSignal = 0.1 * meas.GetHA(CHANNEL, meas.Nx * 3 / 4, 0, meas.Nz / 2, 0, 0)->GetMaximum();
+    fullSignal = 0.9 * meas.GetHA(CHANNEL, meas.Nx * 3 / 4, 0, meas.Nz / 2, 0, 0)->GetMaximum();
     break;
   case Y:
-    startSignal = -1 * 0.1 * meas.GetHA(CHANNEL, 0, meas.Ny * 3 / 4, meas.Nz / 2, 0, 0)->GetMinimum();
-    fullSignal = -1 * 0.9 * meas.GetHA(CHANNEL, 0, meas.Ny * 3 / 4, meas.Nz / 2, 0, 0)->GetMinimum();
+    startSignal = 17;//0.1 * meas.GetHA(CHANNEL, 0, meas.Ny * 3 / 4, meas.Nz / 2, 0, 0)->GetMaximum();
+    fullSignal = 190;//0.9 * meas.GetHA(CHANNEL, 0, meas.Ny * 3 / 4, meas.Nz / 2, 0, 0)->GetMaximum();
+    cout <<"ss"<<startSignal<<"fs"<<fullSignal<<endl;
     break;
   default:
     startSignal = 15;
@@ -68,6 +68,7 @@
   }
 
   for (i = 0; i < meas.Nz; i++) {
+    cout<<"Z="<<i<<endl;
     foundStart = false;
     foundEnd = false;
 
@@ -78,11 +79,11 @@
         t1 = meas.GetHA(CHANNEL, j, 0, i, 0, 0);
         t1->GetXaxis()->SetRange(time(tStart), time(tEnd));
         if (!foundStart) {
-          foundStart = startSignal <= -1 * t1->GetMinimum();
+          foundStart = startSignal >= t1->GetMaximum();
           axis0 = j;
         }
         if (!foundEnd) {
-          foundEnd = fullSignal <= -1 * t1->GetMinimum();
+          foundEnd = fullSignal >= t1->GetMaximum();
           dAxis[i] = j - axis0;
         }
       }
@@ -93,13 +94,16 @@
         TH1F * t1;
         t1 = meas.GetHA(CHANNEL, 0, j, i, 0, 0);
         t1->GetXaxis()->SetRange(time(tStart), time(tEnd));
+        cout <<"Max of current graph:"<<t1->GetMaximum()<<endl;
         if (!foundStart) {
-          foundStart = startSignal <= -1 * t1->GetMinimum();
+          foundStart = startSignal <= t1->GetMaximum();
           axis0 = j;
+          if(foundStart)cout<<"Start "<<j<<endl;
         }
         if (!foundEnd) {
-          foundEnd = fullSignal <= -1 * t1->GetMinimum();
+          foundEnd = fullSignal <= t1->GetMaximum();
           dAxis[i] = j - axis0;
+          if(foundStart)cout<<"End "<<dAxis[i]<<endl;
         }
       }
       break;
@@ -110,21 +114,23 @@
         t1 = meas.GetHA(CHANNEL, j, 0, i, 0, 0);
         t1->GetXaxis()->SetRange(time(tStart), time(tEnd));
         if (!foundStart) {
-          foundStart = startSignal <= -1 * t1->GetMinimum();
+          foundStart = startSignal <= t1->GetMaximum();
           axis0 = j;
         }
         if (!foundEnd) {
-          foundEnd = fullSignal <= -1 * t1->GetMinimum();
+          foundEnd = fullSignal <= t1->GetMaximum();
           dAxis[i] = j - axis0;
         }
       }
       break;
     }
+    cout <<endl;
   }
 
   // Iterate through each Z-coordinates and find the shortest distance from 10% to 90% signal
   int min = 1000, indx = 0;
   for (i = 0; i < meas.Nz; i++) {
+    cout << dAxis[i]<<endl;
     if (dAxis[i] < min) {
       min = dAxis[i];
       indx = i;
@@ -132,6 +138,6 @@
   }
 
   // Print result
-  cout << "Focal point at z=" << meas.z0 + meas.dz * indx << " with spot size=" << min << endl;
+  cout << "Focal point at z=" <<indx*meas.dz+meas.z0 << " with spot size=" << min*meas.dy << endl;
   free(dAxis);
 }
