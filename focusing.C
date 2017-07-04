@@ -20,8 +20,12 @@
   char * file = (char * ) FILEPATH;
   PSTCT *meas;
   //(file,0, 2);
-  meas = new PSTCT(file, 0,2);
+  meas = new PSTCT(file, 10,2);
   meas->PrintInfo();
+  meas->RefC = -0.1276;
+  meas->RefTs =0;
+  meas->RefTe = 26.2;
+  meas->CorrectBaseLine();
   enum {
     X = 0,
       Y = 1
@@ -53,8 +57,8 @@
   switch (SCANAXIS) {
     TH1F *t1;
   case X:
-    startSignal = 15;//0.09 * meas->GetHA(CHANNEL, 0, meas->Ny * 3 / 4, meas->Nz / 2, 0, 0)->GetMaximum();
-    fullSignal = 190;//0.95 * meas->GetHA(CHANNEL, 0, meas->Ny * 3 / 4, meas->Nz / 2, 0, 0)->GetMaximum();
+    startSignal =0.5 * meas->GetHA(CHANNEL, 0, meas->Ny * 3 / 4, meas->Nz / 2, 0, 0)->GetMaximum();
+    fullSignal = 0.95 * meas->GetHA(CHANNEL, 0, meas->Ny * 3 / 4, meas->Nz / 2, 0, 0)->GetMaximum();
     t1 =  meas->GetHA(CHANNEL, 0, meas->Ny * 3 / 4, meas->Nz / 2, 0, 0);
     binSize =meas->NP/t1->GetXaxis()->GetXmax();
     cout <<"ss"<<startSignal<<"fs"<<fullSignal<<endl;
@@ -72,8 +76,8 @@
 
     break;
   case Y:
-    startSignal = 17;//0.09 * meas->GetHA(CHANNEL, 0, meas->Ny * 3 / 4, meas->Nz / 2, 0, 0)->GetMaximum();
-    fullSignal = 190;//0.95 * meas->GetHA(CHANNEL, 0, meas->Ny * 3 / 4, meas->Nz / 2, 0, 0)->GetMaximum();
+    startSignal = 0.1 * meas->GetHA(CHANNEL, 0, meas->Ny * 3 / 4, meas->Nz / 2, 0, 0)->GetMaximum();
+    fullSignal = 0.9 * meas->GetHA(CHANNEL, 0, meas->Ny * 3 / 4, meas->Nz / 2, 0, 0)->GetMaximum();
     t1 =  meas->GetHA(CHANNEL, 0, meas->Ny * 3 / 4, meas->Nz / 2, 0, 0);
     binSize =meas->NP/t1->GetXaxis()->GetXmax();
     cout <<"ss"<<startSignal<<"fs"<<fullSignal<<endl;
@@ -120,15 +124,20 @@
       for (j = 0; j < meas->Ny; j++) {
         TH1F * t1;
         t1 = meas->GetHA(CHANNEL, 0, j, i, 0, 0);
-        t1->GetXaxis()->SetRange(start, end);
+
+        //t1->GetXaxis()->SetRange(start, end);
+        t1->Draw();
         if (!foundStart) {
           foundStart = startSignal <= t1->GetMaximum();
+          if(foundStart)cout<<"Start pt"<<j<<endl;
           axis0 = j;
         }
         if (!foundEnd) {
           foundEnd = fullSignal <= t1->GetMaximum();
+          if(foundEnd)cout<<"End pt"<<j<<endl;
           dAxis[i] = j - axis0;
         }
+
       }
       break;
 
@@ -153,6 +162,7 @@
   // Iterate through each Z-coordinates and find the shortest distance from 10% to 90% signal
   int min = 1000, indx = 0;
   for (i = 0; i < meas->Nz; i++) {
+    cout <<dAxis[i]<<endl;
     if (dAxis[i] < min) {
       min = dAxis[i];
       indx = i;
@@ -160,6 +170,6 @@
   }
 
   // Print result
-  cout << "Focal point at z=" <<indx*meas->dz+meas->z0 << " with spot size=" << min*meas->dy << endl;
+  cout << "Focal point at z=" <<indx*meas->dz+meas->z0 << "um with spot size=" << min*meas->dy <<"+-"<<meas->dy<<"um"<< endl;
   delete [] dAxis;
 }
