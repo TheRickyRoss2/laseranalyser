@@ -55,7 +55,7 @@
   case X:
     startSignal =0.1 * meas->GetHA(CHANNEL, meas->Nx*3/4, 0, meas->Nz / 2, 0, 0)->GetMaximum();
     fullSignal = 0.9 * meas->GetHA(CHANNEL, meas->Nx*3/4, 0, meas->Nz / 2, 0, 0)->GetMaximum();
-    t1 =  meas->GetHA(CHANNEL, 0, meas->Ny * 3 / 4, meas->Nz / 2, 0, 0);
+    t1 =  meas->GetHA(CHANNEL, meas->Nx*3/4, 0, meas->Nz / 2, 0, 0);
     binSize =meas->NP/t1->GetXaxis()->GetXmax();
     if(t1->GetMaximumBin()-binSize*5<0){
       start =0;
