@@ -13,7 +13,7 @@
 
 
   #define CHANNEL CH2 // Select which channel the pad is linked to
-	#define FILEPATH "../../scan.rtct"
+	#define FILEPATH "scan.rtct"
 	#define SCANAXIS Y
 
   gROOT->ProcessLine("gErrorIgnoreLevel=2001");
@@ -21,9 +21,6 @@
   PSTCT *meas;
   meas = new PSTCT(file, 10,2);
   meas->PrintInfo();
-  meas->RefC = -0.1276;
-  meas->RefTs =0;
-  meas->RefTe = 26.2;
   meas->CorrectBaseLine();
   enum {
     X = 0,
@@ -56,9 +53,9 @@
   switch (SCANAXIS) {
     TH1F *t1;
   case X:
-    startSignal =0.5 * meas->GetHA(CHANNEL, 0, meas->Ny * 3 / 4, meas->Nz / 2, 0, 0)->GetMaximum();
-    fullSignal = 0.95 * meas->GetHA(CHANNEL, 0, meas->Ny * 3 / 4, meas->Nz / 2, 0, 0)->GetMaximum();
-    t1 =  meas->GetHA(CHANNEL, 0, meas->Ny * 3 / 4, meas->Nz / 2, 0, 0);
+    startSignal =0.1 * meas->GetHA(CHANNEL, meas->Nx*3/4, 0, meas->Nz / 2, 0, 0)->GetMaximum();
+    fullSignal = 0.9 * meas->GetHA(CHANNEL, meas->Nx*3/4, 0, meas->Nz / 2, 0, 0)->GetMaximum();
+    t1 =  meas->GetHA(CHANNEL, meas->Nx*3/4, 0, meas->Nz / 2, 0, 0);
     binSize =meas->NP/t1->GetXaxis()->GetXmax();
     if(t1->GetMaximumBin()-binSize*5<0){
       start =0;
@@ -121,7 +118,6 @@
         t1 = meas->GetHA(CHANNEL, 0, j, i, 0, 0);
 
         //t1->GetXaxis()->SetRange(start, end);
-        t1->Draw();
         if (!foundStart) {
           foundStart = startSignal <= t1->GetMaximum();
           axis0 = j;
@@ -162,6 +158,6 @@
   }
 
   // Print result
-  cout << "Focal point at z=" <<indx*meas->dz+meas->z0 << "um with spot size=" << min*meas->dy <<"+-"<<meas->dy<<"um"<< endl;
+  cout << "Focal point at z=" <<indx*meas->dz+meas->z0 << "um with spot size=" << min*meas->dy <<" error:"<<meas->dy<<"um"<< endl;
   delete [] dAxis;
 }
