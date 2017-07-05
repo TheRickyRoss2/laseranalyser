@@ -33,12 +33,6 @@
     }
   }
 
-  try{
-    throw 20;
-  }catch(int e){
-    cout <<"error"<<endl;
-  }
-
   enum {
     CH1 = 0,
     CH2 = 1,
@@ -196,6 +190,6 @@
   gr->GetXaxis()->SetTitle("Y-Axis Position [um]");
 
   // Print result
-  cout << "Focal point at z=" <<indx*meas->dz+meas->z0 << "um with spot size=" << min*meas->dy <<" error:"<<meas->dy<<"um"<< endl;
+  cout << "Focal point at z=" <<indx*meas->dz+meas->z0 << "um with spot size=" << (min+1)*meas->dy << endl;
   delete [] dAxis;
 }
