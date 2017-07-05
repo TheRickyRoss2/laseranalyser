@@ -1,6 +1,6 @@
 # Laser Analysis software
 
-This software is to analyse the waveform output of the laser. It plots the gain as a function of x and y, and the minumum voltage as a function of x and y.
+This software is used to calculate the beam spot size of a Particulars TCT laser.
 
 ## Getting Started
 
@@ -12,20 +12,18 @@ TCTAnalyse Version 2.0 available here http://www.particulars.si/TCTAnalyse/TCTAn
 
 ROOT available here https://root.cern.ch/downloading-root
 
-### Installing
 
-Unzip the files and execute the type of analysis you would like
+### Usage
 
 ```
-root plot.C
+root focusing.C
 ```
 
 ## Deployment
 
-For the analysis files:
+For the analysis file:
 
-Set the path in line 3 to point at your PSTCT .sl or .dll file
+Set the path in line 15 to point towards the waveform file
 
-Set the path in line 5 to point at your waveform.rtct file
 
 
