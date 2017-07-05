@@ -59,12 +59,17 @@
   // In this case we assume that the scan is from on the metal to off the metal
   // We also assume that our focusing axis is Z
   double startSignal = 0, fullSignal = 0;
-
+  bool positivePulse = true;
   switch (SCANAXIS) {
     TH1F *t1;
   case X:
     startSignal =0.1 * meas->GetHA(CHANNEL, meas->Nx*3/4, 0, meas->Nz / 2, 0, 0)->GetMaximum();
     fullSignal = 0.9 * meas->GetHA(CHANNEL, meas->Nx*3/4, 0, meas->Nz / 2, 0, 0)->GetMaximum();
+    if(fullSignal<50){
+      startSignal = -0.1*meas->GetHA(CHANNEL, meas->Nx*3/4, 0, meas->Nz/2, 0, 0)->GetMinimum();
+      fullSignal = -0.9*meas->GetHA(CHANNEL, meas->Nx*3/4, 0, meas->Nz/2, 0, 0)->GetMinimum();
+      positivePulse = false;
+    }
     t1 =  meas->GetHA(CHANNEL, meas->Nx*3/4, 0, meas->Nz / 2, 0, 0);
     binSize =meas->NP/t1->GetXaxis()->GetXmax();
     if(t1->GetMaximumBin()-binSize*5<0){
@@ -82,6 +87,11 @@
   case Y:
     startSignal = 0.1 * meas->GetHA(CHANNEL, 0, meas->Ny * 3 / 4, meas->Nz / 2, 0, 0)->GetMaximum();
     fullSignal = 0.9 * meas->GetHA(CHANNEL, 0, meas->Ny * 3 / 4, meas->Nz / 2, 0, 0)->GetMaximum();
+    if(fullSignal<50){
+      startSignal = -0.1*meas->GetHA(CHANNEL, 0, meas->Ny*3/4, meas->Nz/2, 0, 0)->GetMinimum();
+      fullSignal = -0.9*meas->GetHA(CHANNEL, 0, meas->Ny*3/4, meas->Nz/2, 0, 0)->GetMinimum();
+      positivePulse = false;
+    }
     t1 =  meas->GetHA(CHANNEL, 0, meas->Ny * 3 / 4, meas->Nz / 2, 0, 0);
     binSize =meas->NP/t1->GetXaxis()->GetXmax();
     if(t1->GetMaximumBin()-binSize*5<0){
@@ -112,11 +122,19 @@
         t1 = meas->GetHA(CHANNEL, j, 0, i, 0, 0);
         t1->GetXaxis()->SetRange(start, end);
         if (!foundStart) {
-          foundStart = startSignal <= t1->GetMaximum();
+          if(positivePulse){
+            foundStart = startSignal <= t1->GetMaximum();
+          }else{
+            foundStart = startSignal <= -1*t1->GetMinimum();
+          }
           axis0 = j;
         }
         if (!foundEnd) {
-          foundEnd = fullSignal <= t1->GetMaximum();
+          if(positivePulse){
+            foundEnd = fullSignal <= t1->GetMaximum();
+          }else{
+            foundEnd = fullSignal <= -1*t1->GetMinimum();
+          }
           dAxis[i] = j - axis0;
           distance.push_back(j-axis0);
         }
@@ -130,11 +148,19 @@
 
         //t1->GetXaxis()->SetRange(start, end);
         if (!foundStart) {
-          foundStart = startSignal <= t1->GetMaximum();
+          if(positivePulse){
+            foundStart = startSignal <= t1->GetMaximum();
+          }else{
+            foundStart = startSignal <= -1*t1->GetMinimum();
+          }
           axis0 = j;
         }
         if (!foundEnd) {
-          foundEnd = fullSignal <= t1->GetMaximum();
+          if(positivePulse){
+            foundEnd = fullSignal <= t1->GetMaximum();
+          }else{
+            foundEnd = fullSignal <= -1*t1->GetMinimum();
+          }
           dAxis[i] = j - axis0;
           distance.push_back(j-axis0);
         }
