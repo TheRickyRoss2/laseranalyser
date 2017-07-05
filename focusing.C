@@ -32,7 +32,6 @@
       CHANNEL = i;
     }
   }
-  cout << SCANAXIS << ":" << CHANNEL << endl;
   enum {
     CH1 = 0,
     CH2 = 1,
@@ -112,8 +111,6 @@
     fullSignal = 120;
   }
 
-  cout <<"S"<<startSignal<<"E"<<fullSignal<<"P"<<positivePulse<<endl;
-  cout <<"Start"<<start<<"End"<<end<<endl;
   for (i = 0; i < meas->Nz; i++) {
     foundStart = false;
     foundEnd = false;
@@ -124,7 +121,6 @@
         TH1F * t1;
         t1 = meas->GetHA(CHANNEL, j, 0, i, 0, 0);
         t1->GetXaxis()->SetRange(start, end);
-        //cout <<"current max" << t1->GetMinimum()<< endl;
 
         if (!foundStart) {
           if(positivePulse){
@@ -140,7 +136,6 @@
             foundEnd = fullSignal <= t1->GetMaximum();
           }else{
             foundEnd = fullSignal <= -1*t1->GetMinimum();
-            if(foundEnd)cout <<"end"<<j;
           }
           dAxis[i] = j - axis0;
         }
@@ -153,7 +148,6 @@
         TH1F * t1;
         t1 = meas->GetHA(CHANNEL, 0, j, i, 0, 0);
         //t1->GetXaxis()->SetRange(start, end);
-        //cout <<"current max" << t1->GetMinimum()<< endl;
 
         if (!foundStart) {
           if(positivePulse){
@@ -169,7 +163,6 @@
             foundEnd = fullSignal <= t1->GetMaximum();
           }else{
             foundEnd = fullSignal <= -1*t1->GetMinimum();
-            if(foundEnd)cout <<"end"<<j;
           }
           dAxis[i] = j - axis0;
         }
@@ -198,7 +191,6 @@
   // Iterate through each Z-coordinates and find the shortest distance from 10% to 90% signal
   int min = 1000, indx = 0;
   for (i = 0; i < meas->Nz; i++) {
-    cout <<dAxis[i]<<endl;
     if (dAxis[i] < min) {
       min = dAxis[i];
       indx = i;
