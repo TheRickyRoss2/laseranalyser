@@ -12,29 +12,44 @@
    ****************************************************************************/
 
 
-  #define CHANNEL CH2 // Select which channel the pad is linked to
-	#define FILEPATH "scan.rtct"
-	#define SCANAXIS Y
+	#define FILEPATH "data.rtct"
 
   gROOT->ProcessLine("gErrorIgnoreLevel=2001");
   char * file = (char * ) FILEPATH;
   PSTCT *meas;
-  meas = new PSTCT(file, 10,2);
+  meas = new PSTCT(file, 0,2);
   meas->PrintInfo();
-  meas->CorrectBaseLine();
-  enum {
-    X = 0,
-      Y = 1
+  //meas->CorrectBaseLine();
+  int SCANAXIS;
+  if(meas->Nx>1){
+    SCANAXIS=0;
+  }else{
+    SCANAXIS=1;
   }
-  axis;
+  int CHANNEL;
+  for(int i=0;i<4;i++){
+    if(meas->WFOnOff[i]){
+      CHANNEL = i;
+    }
+  }
+
+  try{
+    throw 20;
+  }catch(int e){
+    cout <<"error"<<endl;
+  }
 
   enum {
     CH1 = 0,
-      CH2 = 1,
-      CH3 = 2,
-      CH4 = 3
+    CH2 = 1,
+    CH3 = 2,
+    CH4 = 3
   }
   channel;
+  enum {
+    X=0,
+    Y=1
+  }axis;
 
   // Set up input data buffers
   int i = 0, j = 0;
@@ -42,6 +57,7 @@
   int * dAxis;
   int start=0, end=0, binSize=0;
   dAxis = new int[meas->Nz];
+  std::vector<int> distance;
 
   bool foundStart = false, foundEnd = false;
 
@@ -108,6 +124,7 @@
         if (!foundEnd) {
           foundEnd = fullSignal <= t1->GetMaximum();
           dAxis[i] = j - axis0;
+          distance.push_back(j-axis0);
         }
       }
       break;
@@ -125,6 +142,7 @@
         if (!foundEnd) {
           foundEnd = fullSignal <= t1->GetMaximum();
           dAxis[i] = j - axis0;
+          distance.push_back(j-axis0);
         }
 
       }
@@ -142,6 +160,7 @@
         if (!foundEnd) {
           foundEnd = fullSignal <= t1->GetMaximum();
           dAxis[i] = j - axis0;
+          distance.push_back(j-axis0);
         }
       }
       break;
@@ -156,6 +175,25 @@
       indx = i;
     }
   }
+  double * vals, *bins;
+  bins = new double[meas->Ny];
+  vals = new double[meas->Ny+1];
+  for(int i = 0;i<meas->Ny;i++){
+    TH1F *t;
+    t = meas->GetHA(CHANNEL, 0, i, indx, 0);
+    vals[i] = t->GetMaximum();
+    bins[i] = meas->dy*i+meas->y0;
+  }
+  TCanvas *c1 = new TCanvas("c1", "Amplitude vs Y-Position");
+  c1->SetCanvasSize(1000, 500);
+  c1->SetWindowSize(1050, 550);
+  c1->SetGrid();
+  TGraph * gr = new TGraph(meas->Ny, bins, vals);
+  gr->Draw("AC");
+  gr->SetLineColor(4);
+  gr->SetTitle("Amplitude vs Y-Position");
+  gr->GetYaxis()->SetTitle("Amplitude [mV]");
+  gr->GetXaxis()->SetTitle("Y-Axis Position [um]");
 
   // Print result
   cout << "Focal point at z=" <<indx*meas->dz+meas->z0 << "um with spot size=" << min*meas->dy <<" error:"<<meas->dy<<"um"<< endl;
