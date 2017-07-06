@@ -131,7 +131,6 @@
     startSignal = 15;
     fullSignal = 120;
   }
-  cout <<"S"<<startSignal<<"E"<<fullSignal<<endl;
 
 
   for (i = 0; i < meas->Nz; i++) {
@@ -176,9 +175,6 @@
       }else{
         dAxis[i] = axis0-axis1;
       }
-      cout <<"foundStart:"<<axis0;
-      cout <<"foundEnd:"<<axis1;
-      cout <<"dAxis"<<dAxis[i]<<endl;
       break;
 
     case Y:
@@ -243,7 +239,6 @@
   // Iterate through each Z-coordinates and find the shortest distance from 10% to 90% signal
   int min = 1000, indx = 0;
   for (i = 0; i < meas->Nz; i++) {
-    cout << dAxis[i]<<endl;
     if (dAxis[i] < min) {
       min = dAxis[i];
       indx = i;
