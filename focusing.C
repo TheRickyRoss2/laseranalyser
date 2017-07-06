@@ -12,13 +12,13 @@
    ****************************************************************************/
 
 
-	#define FILEPATH "Run6.rtct"
+	#define FILEPATH "data.rtct"
 
-  gROOT->ProcessLine("gErrorIgnoreLevel=2001");
+  gROOT->ProcessLine("gErrorIgnoreLevel=2001;");
   char * file = (char * ) FILEPATH;
   PSTCT *meas;
   meas = new PSTCT(file, 0,2);
-  meas->PrintInfo();
+  //meas->PrintInfo();
   //meas->CorrectBaseLine();
   int SCANAXIS;
   if(meas->Nx>1){
@@ -46,12 +46,12 @@
 
   // Set up input data buffers
   int i = 0, j = 0;
-  int axis0 = 0, z0 = 0;
+  int axis0 = 0, axis1=0, z0 = 0;
   int * dAxis;
   int start=0, end=0, binSize=0;
   dAxis = new int[meas->Nz];
 
-  bool foundStart = false, foundEnd = false;
+  bool foundStart = false, foundEnd = false, metalToPad=true;
 
   // Judiciously choose a waveform which the laser hits entirely as a reference
   // In this case we assume that the scan is from on the metal to off the metal
@@ -69,7 +69,17 @@
       fullSignal = -0.9*meas->GetHA(CHANNEL, meas->Nx*3/4, 0, meas->Nz/2, 0, 0)->GetMinimum();
       positivePulse = false;
     }
-    t1 =  meas->GetHA(CHANNEL, meas->Nx*3/4, 0, meas->Nz / 2, 0, 0);
+    if(fullSignal<50){
+      startSignal = 0.1*meas->GetHA(CHANNEL, meas->Nx*1/4, 0, meas->Nz/2, 0, 0)->GetMaximum();
+      fullSignal = 0.9*meas->GetHA(CHANNEL, meas->Nx*1/4, 0, meas->Nz/2, 0, 0)->GetMaximum();
+      metalToPad = false;
+      positivePulse = true;
+    }
+    if(metalToPad){
+      t1 =  meas->GetHA(CHANNEL, meas->Nx*3/4, 0, meas->Nz / 2, 0, 0);
+    }else{
+      t1 =  meas->GetHA(CHANNEL, meas->Nx*1/4, 0, meas->Nz / 2, 0, 0);
+    }
     binSize =meas->NP/t1->GetXaxis()->GetXmax();
     if(t1->GetMinimumBin()-binSize*5<0){
       start =0;
@@ -92,7 +102,18 @@
       fullSignal = -0.9*meas->GetHA(CHANNEL, 0, meas->Ny*3/4, meas->Nz/2, 0, 0)->GetMinimum();
       positivePulse = false;
     }
-    t1 =  meas->GetHA(CHANNEL, 0, meas->Ny * 3 / 4, meas->Nz / 2, 0, 0);
+    if(fullSignal<50){
+      startSignal = 0.1*meas->GetHA(CHANNEL, 0, meas->Ny*1/4, meas->Nz/2, 0, 0)->GetMaximum();
+      fullSignal = 0.9*meas->GetHA(CHANNEL, 0, meas->Ny*1/4, meas->Nz/2, 0, 0)->GetMaximum();
+      metalToPad = false;
+      positivePulse = true;
+    }
+
+    if(metalToPad){
+      t1 =  meas->GetHA(CHANNEL, 0, meas->Ny * 3 / 4, meas->Nz / 2, 0, 0);
+    }else{
+      t1 =  meas->GetHA(CHANNEL, 0, meas->Ny * 1 / 4, meas->Nz / 2, 0, 0);
+    }
     binSize =meas->NP/t1->GetXaxis()->GetXmax();
     if(t1->GetMinimumBin()-binSize*5<0){
       start =0;
@@ -110,6 +131,8 @@
     startSignal = 15;
     fullSignal = 120;
   }
+  cout <<"S"<<startSignal<<"E"<<fullSignal<<endl;
+
 
   for (i = 0; i < meas->Nz; i++) {
     foundStart = false;
@@ -121,10 +144,13 @@
         TH1F * t1;
         t1 = meas->GetHA(CHANNEL, j, 0, i, 0, 0);
         t1->GetXaxis()->SetRange(start, end);
-
         if (!foundStart) {
           if(positivePulse){
-            foundStart = startSignal <= t1->GetMaximum();
+            if(metalToPad){
+              foundStart = startSignal <= t1->GetMaximum();
+            }else{
+              foundStart = startSignal >= t1->GetMaximum();
+            }
           }else{
             foundStart = startSignal <= -1*t1->GetMinimum();
           }
@@ -133,25 +159,41 @@
 
         if (!foundEnd) {
           if(positivePulse){
-            foundEnd = fullSignal <= t1->GetMaximum();
+            if(metalToPad){
+              foundEnd = fullSignal <= t1->GetMaximum();
+            }else{
+              foundEnd = fullSignal >= t1->GetMaximum();
+            }
           }else{
             foundEnd = fullSignal <= -1*t1->GetMinimum();
           }
-          dAxis[i] = j - axis0;
+          axis1 = j;
         }
 
       }
+      if(metalToPad){
+        dAxis[i] = axis1-axis0;
+      }else{
+        dAxis[i] = axis0-axis1;
+      }
+      cout <<"foundStart:"<<axis0;
+      cout <<"foundEnd:"<<axis1;
+      cout <<"dAxis"<<dAxis[i]<<endl;
       break;
 
     case Y:
       for (j = 0; j < meas->Ny; j++) {
         TH1F * t1;
         t1 = meas->GetHA(CHANNEL, 0, j, i, 0, 0);
-        //t1->GetXaxis()->SetRange(start, end);
+        t1->GetXaxis()->SetRange(start, end);
 
         if (!foundStart) {
           if(positivePulse){
-            foundStart = startSignal <= t1->GetMaximum();
+            if(metalToPad){
+              foundStart = startSignal <= t1->GetMaximum();
+            }else{
+              foundStart = startSignal >= t1->GetMaximum();
+            }
           }else{
             foundStart = startSignal <= -1*t1->GetMinimum();
           }
@@ -160,11 +202,21 @@
 
         if (!foundEnd) {
           if(positivePulse){
-            foundEnd = fullSignal <= t1->GetMaximum();
+            if(metalToPad){
+              foundEnd = fullSignal <= t1->GetMaximum();
+            }else{
+              foundEnd = fullSignal >= t1->GetMaximum();
+            }
           }else{
             foundEnd = fullSignal <= -1*t1->GetMinimum();
           }
-          dAxis[i] = j - axis0;
+          axis1 = j;
+        }
+
+        if(metalToPad){
+          dAxis[i] = axis1-axis0;
+        }else{
+          dAxis[i] = axis0-axis1;
         }
 
       }
@@ -191,6 +243,7 @@
   // Iterate through each Z-coordinates and find the shortest distance from 10% to 90% signal
   int min = 1000, indx = 0;
   for (i = 0; i < meas->Nz; i++) {
+    cout << dAxis[i]<<endl;
     if (dAxis[i] < min) {
       min = dAxis[i];
       indx = i;
@@ -225,7 +278,7 @@
   c1->SetWindowSize(1050, 550);
   c1->SetGrid();
   TGraph * gr = new TGraph(arrSize, bins, vals);
-  gr->Draw("A*");
+  gr->Draw("AC");
   //gr->Fit("gaus");
   gr->SetLineColor(2);
   gr->SetMarkerStyle(21);
