@@ -12,33 +12,54 @@
    ****************************************************************************/
 
 
-	#define FILEPATH "data.rtct"
+  // User defined path to waveform file
+	#define FILEPATH "Run28.rtct"
 
   gROOT->ProcessLine("gErrorIgnoreLevel=2001;");
   char * file = (char * ) FILEPATH;
   PSTCT *meas;
+
   meas = new PSTCT(file, 0,2);
-  //meas->PrintInfo();
-  //meas->CorrectBaseLine();
+
+  // Choose the scanning axis with higher resolution
   int SCANAXIS;
-  if(meas->Nx>1){
+
+  if(meas->Nx>meas->Ny){
     SCANAXIS=0;
   }else{
     SCANAXIS=1;
   }
+
+  // Dynamically select the channel with the highest resolution
   int CHANNEL;
+  TH2F * waves;
+  double refMax=0, refMin=0;
+
   for(int i=0;i<4;i++){
+
     if(meas->WFOnOff[i]){
-      CHANNEL = i;
+
+      waves = meas->Draw(i, 0, 2, 0, 0, 0, 0, 2000);
+      double wavemin = waves->GetMinimum();
+      waves = meas->Draw(i, 0, 1, 0, 0, 0, 0, 2000);
+      double wavemax = waves->GetMaximum();
+
+      if(wavemin<refMax || wavemax>refMax){
+
+        CHANNEL = i;
+        refMin = wavemin;
+        refMax = wavemax;
+      }
     }
   }
+
   enum {
     CH1 = 0,
     CH2 = 1,
     CH3 = 2,
     CH4 = 3
-  }
-  channel;
+  }channel;
+
   enum {
     X=0,
     Y=1
@@ -54,38 +75,57 @@
   bool foundStart = false, foundEnd = false, metalToPad=true;
 
   // Judiciously choose a waveform which the laser hits entirely as a reference
-  // In this case we assume that the scan is from on the metal to off the metal
-  // We also assume that our focusing axis is Z
+  // We assume that our focusing axis is Z
+  // In this section we also determine the direction of the pulse
+  // In this section we also determine the time interval of the pulse for charge collection
+  // Additionally we determine whether direction the scan is going
   double startSignal = 0, fullSignal = 0;
   bool positivePulse = true;
+
   switch (SCANAXIS) {
     TH1F *t1;
 
   case X:
+    // Choose a reference signal around 3/4 of the way down
+    // Standard metal->pad scan with positive pulse shape
     startSignal =0.1 * meas->GetHA(CHANNEL, meas->Nx*3/4, 0, meas->Nz / 2, 0, 0)->GetMaximum();
     fullSignal = 0.9 * meas->GetHA(CHANNEL, meas->Nx*3/4, 0, meas->Nz / 2, 0, 0)->GetMaximum();
+
+    // If a low signal is found try looking for a negative pulse
+    // metal->pad scan with negative pulse shape
     if(fullSignal<50){
       startSignal = -0.1*meas->GetHA(CHANNEL, meas->Nx*3/4, 0, meas->Nz/2, 0, 0)->GetMinimum();
       fullSignal = -0.9*meas->GetHA(CHANNEL, meas->Nx*3/4, 0, meas->Nz/2, 0, 0)->GetMinimum();
       positivePulse = false;
     }
+
+    // If still no signal is found then check for a signal 3/4 of the way up to the pad
+    // pad->metal scan with positive pulse shape
     if(fullSignal<50){
       startSignal = 0.1*meas->GetHA(CHANNEL, meas->Nx*1/4, 0, meas->Nz/2, 0, 0)->GetMaximum();
       fullSignal = 0.9*meas->GetHA(CHANNEL, meas->Nx*1/4, 0, meas->Nz/2, 0, 0)->GetMaximum();
       metalToPad = false;
       positivePulse = true;
     }
+
+    // Determine the reference waveform based on the type of scan determined previously
     if(metalToPad){
       t1 =  meas->GetHA(CHANNEL, meas->Nx*3/4, 0, meas->Nz / 2, 0, 0);
     }else{
       t1 =  meas->GetHA(CHANNEL, meas->Nx*1/4, 0, meas->Nz / 2, 0, 0);
     }
+
+    // Determine the step value of the bins
     binSize =meas->NP/t1->GetXaxis()->GetXmax();
+
+    // Cut before beginning of pulse
     if(t1->GetMinimumBin()-binSize*5<0){
       start =0;
     }else{
       start = t1->GetMinimumBin()-binSize*5;
     }
+
+    // Cut after end of pulse
     if(t1->GetMaximumBin()+binSize*5>meas->NP){
       end = meas->NP;
     }else{
@@ -274,7 +314,6 @@
   c1->SetGrid();
   TGraph * gr = new TGraph(arrSize, bins, vals);
   gr->Draw("AC");
-  //gr->Fit("gaus");
   gr->SetLineColor(2);
   gr->SetMarkerStyle(21);
   gr->SetMarkerColor(2);
@@ -290,9 +329,9 @@
 
   // Print result
   if(SCANAXIS==X){
-    cout << "Focal point at z=" <<indx*meas->dz+meas->z0 << "um with spot size=" << (min+1)*meas->dx << endl;
+    cout << "Focal point at z=" <<indx*meas->dz+meas->z0 << "um with spot size=" << (min)*meas->dx << endl;
   }else{
-    cout << "Focal point at z=" <<indx*meas->dz+meas->z0 << "um with spot size=" << (min+1)*meas->dy << endl;
+    cout << "Focal point at z=" <<indx*meas->dz+meas->z0 << "um with spot size=" << (min)*meas->dy << endl;
   }
   delete [] dAxis;
 }
